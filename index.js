@@ -100,11 +100,13 @@ async function loadMachines(root) {
  * @param {boolean} [options.convex] Lint Convex functions. Defaults to whether the app depends on convex.
  * @param {string[]} [options.untyped] More files to lint without type information (files no tsconfig includes).
  * @param {string[]} [options.ignores] More files to skip.
+ * @param {boolean} [options.allowSecondTypeScript] Skip the check for a second TypeScript, for a config that
+ *   loads the app's TypeScript for its own use (lint tooling must still come from this package).
  * @param {string[]} [options.notReact] Files that aren't React, such as server code with functions named use...,
  *   which the hook rules would take for hooks.
  * @returns {Promise<import("eslint").Linter.Config[]>}
  */
-export default async function mikecannLint({ root, react, convex: useConvex, untyped = [], ignores = [], notReact = [] } = {}) {
+export default async function mikecannLint({ root, react, convex: useConvex, untyped = [], ignores = [], notReact = [], allowSecondTypeScript = false } = {}) {
   if (!root) throw new Error("mikecann-lint: pass { root: import.meta.dirname }");
   const pkg = readPackage(root);
   const withReact = react ?? (depends(pkg, "react") || depends(pkg, "react-native"));
@@ -196,11 +198,11 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
     });
 
   const copies = loadedTypeScripts();
-  if (copies.length > 1)
+  if (copies.length > 1 && !allowSecondTypeScript)
     throw new Error(
       `mikecann-lint: two copies of TypeScript are loaded (${copies.join(", ")}), so lint rules would mix them and fail in odd ways. ` +
         "Something loaded typescript-eslint or @convex-dev/eslint-plugin before mikecann-lint could give it TypeScript 6. " +
-        "Don't import them in eslint.config yourself: use `import { tseslint, convexPlugin, reactHooks } from \"mikecann-lint\"`, and import mikecann-lint first.",
+        "Don't import them in eslint.config yourself: use `import { tseslint, convexPlugin, reactHooks } from \"mikecann-lint\"`, and import mikecann-lint first. If the config loads TypeScript for its own use, pass allowSecondTypeScript: true.",
     );
   return configs;
 }

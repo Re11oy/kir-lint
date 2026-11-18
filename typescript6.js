@@ -2,7 +2,9 @@
 // TypeScript 7. Rather than make every app add a `typescript6` alias, the
 // lint tooling loaded after this module gets this package's own TypeScript 6
 // whenever it asks for "typescript". The app's own `tsc` is untouched.
+import fs from "node:fs";
 import * as nodeModule from "node:module";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const require = nodeModule.createRequire(import.meta.url);
@@ -13,15 +15,26 @@ const LINT_TOOLING =
 
 let installed = false;
 
-// Every copy of TypeScript loaded so far, by folder. More than one means some
-// lint tooling was loaded before the hook (an app config importing
-// typescript-eslint or the Convex plugin itself), and mixing copies crashes
-// rules in odd ways (no-unsafe-enum-comparison in the PGLOA apps).
+// Every copy of TypeScript loaded so far, by folder. Loading our own copy
+// first means a copy captured by lint tooling before the hook (an app config
+// importing typescript-eslint or the Convex plugin itself) always shows up as
+// a second folder, even when the tooling only reaches for TypeScript 6 later
+// (project-service loads tsserverlibrary lazily). Mixing copies makes rules
+// fail in odd ways (no-unsafe-enum-comparison in the PGLOA apps). Copies are
+// found by their package.json, so a symlinked install outside node_modules
+// counts too.
 export function loadedTypeScripts() {
+  if (typeof nodeModule.registerHooks === "function") require("typescript6");
   const folders = new Set();
   for (const file of Object.keys(require.cache)) {
-    const match = file.match(/^(.*[\\/]node_modules[\\/](?:typescript|typescript6))[\\/]lib[\\/][^\\/]+\.js$/);
-    if (match) folders.add(match[1]);
+    const match = file.match(/^(.*)[\\/]lib[\\/](?:typescript|tsserverlibrary)\.js$/);
+    if (!match || folders.has(match[1])) continue;
+    try {
+      const name = JSON.parse(fs.readFileSync(path.join(match[1], "package.json"), "utf8")).name;
+      if (name === "typescript") folders.add(match[1]);
+    } catch {
+      // Not a package folder.
+    }
   }
   return [...folders];
 }
