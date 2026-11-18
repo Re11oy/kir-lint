@@ -1,6 +1,6 @@
 {
   "name": "mikecann-lint",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A small, strict ESLint setup for Convex + TypeScript + React apps. Every rule is there because it caught a real bug.",
   "type": "module",
   "license": "MIT",
