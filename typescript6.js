@@ -22,11 +22,14 @@ export function useTypeScript6() {
     );
     return;
   }
-  const typescript6 = pathToFileURL(require.resolve("typescript6")).href;
   registerHooks({
     resolve(specifier, context, nextResolve) {
-      if (specifier === "typescript" && LINT_TOOLING.test(context.parentURL ?? ""))
-        return { url: typescript6, shortCircuit: true, format: "commonjs" };
+      // "typescript" and its subpaths: @typescript-eslint/project-service
+      // loads "typescript/lib/tsserverlibrary", which TypeScript 7 doesn't have.
+      if ((specifier === "typescript" || specifier.startsWith("typescript/")) && LINT_TOOLING.test(context.parentURL ?? "")) {
+        const target = "typescript6" + specifier.slice("typescript".length);
+        return { url: pathToFileURL(require.resolve(target)).href, shortCircuit: true, format: "commonjs" };
+      }
       return nextResolve(specifier, context);
     },
   });
