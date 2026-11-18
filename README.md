@@ -66,6 +66,8 @@ When an agent gets something wrong that a rule could catch:
 
 `npm install -D mikecann-lint@latest`, then `npx eslint . --prune-suppressions`. When a rule gets narrower, problems you'd recorded as exempt stop happening, and ESLint fails until the exemptions file is pruned. The same goes for fixing an old problem by hand: prune, and the file shrinks.
 
+From 0.1.0 with npm: 0.1.0 linked its TypeScript 6's `tsc` over the app's, and upgrading deletes that link without putting the app's back. Run `npm rebuild typescript` and check `node_modules/.bin/tsc -v` is the app's again. Fresh installs (CI) aren't affected.
+
 ## In the agent's loop
 
 A rule only helps if it runs while the agent works. Threadbear runs `mikecann-lint changed` at the end of every turn that edits code (a home patch in `~/.threadbear/patches/lint.ts`), and tells the agent about failures. It lints only the files the checkout changed, so it takes a few seconds.
