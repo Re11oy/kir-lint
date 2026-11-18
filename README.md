@@ -61,10 +61,14 @@ When an agent gets something wrong that a rule could catch:
 4. Measure it on a couple of apps before turning it on. If most hits are fine code, it isn't ready.
 5. Add a line to the table above saying what happened.
 
+## Upgrading
+
+`npm install -D mikecann-lint@latest`, then `npx eslint . --prune-suppressions`. When a rule gets narrower, problems you'd recorded as exempt stop happening, and ESLint fails until the exemptions file is pruned. The same goes for fixing an old problem by hand: prune, and the file shrinks.
+
 ## In the agent's loop
 
 A rule only helps if it runs while the agent works. Threadbear runs `mikecann-lint changed` at the end of every turn that edits code (a home patch in `~/.threadbear/patches/lint.ts`), and tells the agent about failures. It lints only the files the checkout changed, so it takes a few seconds.
 
 ## TypeScript 7
 
-typescript-eslint supports TypeScript up to 6.0. This package carries its own TypeScript 6 and points typescript-eslint, the Convex plugin and the state machines rules at it, so apps on TypeScript 7 lint fine without an alias. The app's own `tsc` is untouched. It needs Node 22.15 or later (`module.registerHooks`).
+typescript-eslint supports TypeScript up to 6.0. This package carries its own TypeScript 6, bundled inside it so npm never links its `tsc` over the app's, and points typescript-eslint, the Convex plugin and the state machines rules at it, so apps on TypeScript 7 lint fine without an alias. The app's own `tsc` is untouched. It needs Node 22.15 or later (`module.registerHooks`).

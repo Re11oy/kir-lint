@@ -25,6 +25,10 @@ export const TEST_FILES = [
 const CODE = ["**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"];
 const TS = ["**/*.{ts,tsx,mts,cts}"];
 const COMPONENTS = ["**/*.{tsx,jsx}"];
+// Where React code lives: components, and hooks in their own .ts files.
+// Server code that names a function use... isn't a hook, so the hook rules
+// stay out of other .ts files (stashit had 41 false hits, agent-archive 1).
+const REACT = [...COMPONENTS, "**/use[A-Z]*.{ts,mts}", "**/hooks/**/*.{ts,mts}"];
 const CONVEX = ["**/convex/**/*.{ts,tsx,mts}"];
 // Plain JS, tool config files and tests often sit outside every tsconfig.
 // They're linted without type information rather than failing to parse; none
@@ -142,7 +146,7 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
     configs.push(
       {
         name: "mikecann-lint/react",
-        files: CODE,
+        files: REACT,
         ignores: CONVEX,
         plugins: { "react-hooks": reactHooks },
         rules: reactRules(),

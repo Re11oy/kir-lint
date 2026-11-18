@@ -52,5 +52,8 @@
   },
   "devDependencies": {
     "eslint": "^10.15.0"
-  }
+  },
+  "bundleDependencies": [
+    "typescript6"
+  ]
 }
