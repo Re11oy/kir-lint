@@ -34,7 +34,7 @@
     "LICENSE"
   ],
   "engines": {
-    "node": ">=22.15"
+    "node": "^22.15.0 || >=23.5.0"
   },
   "scripts": {
     "test": "node --test test/*.test.js",

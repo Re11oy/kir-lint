@@ -25,12 +25,13 @@ export default [
 ];
 ```
 
-Import it before anything else that loads typescript-eslint (see TypeScript 7 below). Options:
+Don't import `typescript-eslint`, `@convex-dev/eslint-plugin` or `eslint-plugin-react-hooks` in the config yourself: take them from this package (`import mikecannLint, { tseslint, convexPlugin, reactHooks } from "mikecann-lint"`), so everything uses the same TypeScript (see TypeScript 7 below). If something loads a second TypeScript anyway, the config stops with an error saying so, as mixing them makes rules fail in odd ways. Options:
 
 - `root` (required): the app's folder.
 - `react`, `convex`: on when the app depends on react / react-native or convex.
 - `untyped`: more globs to lint without type information, for files no tsconfig includes ("was not found by the project service").
 - `ignores`: more globs to skip.
+- `notReact`: files that aren't React, such as server code with functions named `use...`, which the hook rules would take for hooks.
 
 ## The rules
 
@@ -71,4 +72,4 @@ A rule only helps if it runs while the agent works. Threadbear runs `mikecann-li
 
 ## TypeScript 7
 
-typescript-eslint supports TypeScript up to 6.0. This package carries its own TypeScript 6, bundled inside it so npm never links its `tsc` over the app's, and points typescript-eslint, the Convex plugin and the state machines rules at it, so apps on TypeScript 7 lint fine without an alias. The app's own `tsc` is untouched. It needs Node 22.15 or later (`module.registerHooks`).
+typescript-eslint supports TypeScript up to 6.0. This package carries its own TypeScript 6, bundled inside it so npm never links its `tsc` over the app's, and points typescript-eslint, the Convex plugin and the state machines rules at it, so apps on TypeScript 7 lint fine without an alias. The app's own `tsc` is untouched. It needs Node 22.15+ or 23.5+ (`module.registerHooks`).

@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
-import { useTypeScript6 } from "./typescript6.js";
+import { loadedTypeScripts, useTypeScript6 } from "./typescript6.js";
 import plugin from "./plugin.js";
 
 // Before anything loads typescript-eslint, so it gets TypeScript 6.
@@ -25,10 +25,6 @@ export const TEST_FILES = [
 const CODE = ["**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"];
 const TS = ["**/*.{ts,tsx,mts,cts}"];
 const COMPONENTS = ["**/*.{tsx,jsx}"];
-// Where React code lives: components, and hooks in their own .ts files.
-// Server code that names a function use... isn't a hook, so the hook rules
-// stay out of other .ts files (stashit had 41 false hits, agent-archive 1).
-const REACT = [...COMPONENTS, "**/use[A-Z]*.{ts,mts}", "**/hooks/**/*.{ts,mts}"];
 const CONVEX = ["**/convex/**/*.{ts,tsx,mts}"];
 // Plain JS, tool config files and tests often sit outside every tsconfig.
 // They're linted without type information rather than failing to parse; none
@@ -104,9 +100,11 @@ async function loadMachines(root) {
  * @param {boolean} [options.convex] Lint Convex functions. Defaults to whether the app depends on convex.
  * @param {string[]} [options.untyped] More files to lint without type information (files no tsconfig includes).
  * @param {string[]} [options.ignores] More files to skip.
+ * @param {string[]} [options.notReact] Files that aren't React, such as server code with functions named use...,
+ *   which the hook rules would take for hooks.
  * @returns {Promise<import("eslint").Linter.Config[]>}
  */
-export default async function mikecannLint({ root, react, convex: useConvex, untyped = [], ignores = [] } = {}) {
+export default async function mikecannLint({ root, react, convex: useConvex, untyped = [], ignores = [], notReact = [] } = {}) {
   if (!root) throw new Error("mikecann-lint: pass { root: import.meta.dirname }");
   const pkg = readPackage(root);
   const withReact = react ?? (depends(pkg, "react") || depends(pkg, "react-native"));
@@ -146,8 +144,8 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
     configs.push(
       {
         name: "mikecann-lint/react",
-        files: REACT,
-        ignores: CONVEX,
+        files: CODE,
+        ignores: [...CONVEX, ...notReact],
         plugins: { "react-hooks": reactHooks },
         rules: reactRules(),
       },
@@ -197,7 +195,15 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
       rules: Object.fromEntries(Object.keys(convexRules()).map((name) => [name, "off"])),
     });
 
+  const copies = loadedTypeScripts();
+  if (copies.length > 1)
+    throw new Error(
+      `mikecann-lint: two copies of TypeScript are loaded (${copies.join(", ")}), so lint rules would mix them and fail in odd ways. ` +
+        "Something loaded typescript-eslint or @convex-dev/eslint-plugin before mikecann-lint could give it TypeScript 6. " +
+        "Don't import them in eslint.config yourself: use `import { tseslint, convexPlugin, reactHooks } from \"mikecann-lint\"`, and import mikecann-lint first.",
+    );
   return configs;
 }
 
-export { plugin };
+export { plugin, tseslint, reactHooks };
+export const convexPlugin = convex;
