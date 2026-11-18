@@ -1,0 +1,56 @@
+{
+  "name": "mikecann-lint",
+  "version": "0.1.0",
+  "description": "A small, strict ESLint setup for Convex + TypeScript + React apps. Every rule is there because it caught a real bug.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Mike Cann",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikecann/mikecann-lint.git"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-config",
+    "convex",
+    "react",
+    "typescript"
+  ],
+  "exports": {
+    ".": "./index.js",
+    "./plugin": "./plugin.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "mikecann-lint": "./bin/mikecann-lint.js"
+  },
+  "files": [
+    "index.js",
+    "plugin.js",
+    "typescript6.js",
+    "rules",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.15"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "peerDependencies": {
+    "eslint": "^9.24.0 || ^10.0.0"
+  },
+  "dependencies": {
+    "@convex-dev/eslint-plugin": "^5.0.1",
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "typescript-eslint": "^8.73.0",
+    "typescript6": "npm:typescript@~6.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^10.15.0"
+  }
+}
