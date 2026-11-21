@@ -182,6 +182,42 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
       );
   }
 
+  configs.push(
+    {
+      // Rules that need types, so only where the pack has them: not tests,
+      // tool configs, plain JS or the app's `untyped` files.
+      name: "mikecann-lint/promises-and-switches",
+      files: TS,
+      ignores: [...UNTYPED, ...untyped],
+      rules: {
+        "@typescript-eslint/no-floating-promises": "error",
+        "@typescript-eslint/no-misused-promises": "error",
+        // A switch with a default handles the rest on purpose.
+        "@typescript-eslint/switch-exhaustiveness-check": [
+          "error",
+          { considerDefaultExhaustiveForUnions: true, requireDefaultForNonUnion: false },
+        ],
+      },
+    },
+    {
+      // Needs no types, so everywhere there's TypeScript, tests too.
+      name: "mikecann-lint/unused",
+      files: TS,
+      rules: {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          {
+            argsIgnorePattern: "^_",
+            varsIgnorePattern: "^_",
+            caughtErrorsIgnorePattern: "^_",
+            destructuredArrayIgnorePattern: "^_",
+            ignoreRestSiblings: true,
+          },
+        ],
+      },
+    },
+  );
+
   configs.push({
     name: "mikecann-lint/tests",
     files: TEST_FILES,

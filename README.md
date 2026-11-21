@@ -45,6 +45,9 @@ Don't import `typescript-eslint`, `@convex-dev/eslint-plugin` or `eslint-plugin-
 | `mikecann-lint/no-render-wait-timer` | `setTimeout(..., 0-100)` in a component guesses when a render has landed: a robot that slid and jumped back, "wait 50 ms then focus". Longer timers are real waits and pass. |
 | `mikecann-lint/click-shows-progress` | Every click shows something at once and can't be pressed twice. Flags an `onClick`/`onPress` that starts async work on a control with no `disabled` (or `aria-busy`, `loading`) prop. A component whose prop type returns a promise is trusted to show its own progress. If the change is optimistic, say so in a disable comment. |
 | `mikecann-lint/prefer-kind-discriminant` | Unions are tagged with `kind`, as the state machines library does. Asked for in at least five threads. |
+| `@typescript-eslint/no-floating-promises`, `no-misused-promises` | A promise nobody awaits fails silently, or as an "unhandled rejection" in a log nobody reads. On Threadbear (Nov 2026) they found two thread filters testing a cleanup promise for truthiness, always true, and a push send in Convex left unawaited. Fix the cause: `await` it, end it with `.catch(...)`, or mark it `void` when its failure really doesn't matter. An async `onClick` becomes `() => void save()` (and `click-shows-progress` still wants it disabled while it works). Typed, so off in tests, tool configs and `untyped` files. |
+| `@typescript-eslint/switch-exhaustiveness-check` | A switch with no default must name every case of the union it switches on, so adding a `kind` shows every place that has to handle it. A `default:` counts as handling the rest on purpose. Fix: add the missing cases (or a `default` that says why the rest need nothing). |
+| `@typescript-eslint/no-unused-vars` | Imports and locals left behind after code moves mislead the next reader: Threadbear's runner had dozens after its methods moved out of `runner.ts`. Delete it, or start its name with `_` when a signature needs it. |
 | `eslint-comments/require-description`, `no-unlimited-disable`, `ban-ts-comment`, unused disables as errors | Every way out of a rule says why. Agents write justifications for skipping the right fix; at least they're visible this way. |
 
 ## Deliberately not in it
@@ -65,6 +68,8 @@ When an agent gets something wrong that a rule could catch:
 ## Upgrading
 
 `npm install -D mikecann-lint@latest`, then `npx eslint . --prune-suppressions`. When a rule gets narrower, problems you'd recorded as exempt stop happening, and ESLint fails until the exemptions file is pruned. The same goes for fixing an old problem by hand: prune, and the file shrinks.
+
+When an upgrade adds a rule, record what it finds today without touching the other exemptions: `npx eslint . --suppress-rule <rule>` for each new rule (0.2.0 added `@typescript-eslint/no-floating-promises`, `no-misused-promises`, `switch-exhaustiveness-check` and `no-unused-vars`). If the app's own config already sets one of them, its setting still wins, as it comes after the pack.
 
 From 0.1.0 with npm: 0.1.0 linked its TypeScript 6's `tsc` over the app's, and upgrading deletes that link without putting the app's back. Run `npm rebuild typescript` and check `node_modules/.bin/tsc -v` is the app's again. Fresh installs (CI) aren't affected.
 
