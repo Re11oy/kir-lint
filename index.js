@@ -197,6 +197,8 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
           "error",
           { considerDefaultExhaustiveForUnions: true, requireDefaultForNonUnion: false },
         ],
+        // Files that import each other in a circle, read from the program.
+        "mikecann-lint/no-import-cycle": "error",
       },
     },
     {

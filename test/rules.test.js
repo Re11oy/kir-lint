@@ -110,3 +110,28 @@ untyped.run("prefer-kind-discriminant", rules["prefer-kind-discriminant"], {
     { code: `type E = { type: "a" | "b"; x: 1 } | { kind: "c" };`, errors: [{ messageId: "kind" }] },
   ],
 });
+
+const loopA = path.join(fixture, "loop-a.ts");
+const loopB = path.join(fixture, "loop-b.ts");
+const oneWay = path.join(fixture, "one-way.ts");
+typed.run("no-import-cycle", rules["no-import-cycle"], {
+  valid: [
+    // Type-only imports and dynamic imports aren't a loop at runtime, so
+    // one-way.ts, which reaches loop-a and loop-b only those ways, is in none.
+    { filename: oneWay, code: `import type { a } from "./loop-a";\nimport { type b } from "./loop-b";\nexport type T = typeof a | typeof b;\nexport const lazy = () => import("./loop-a");\n` },
+    // A package import is never part of a loop.
+    { filename: tsx, code: `import { useState } from "react";\nexport const x = useState;` },
+  ],
+  invalid: [
+    {
+      filename: loopA,
+      code: `import { b } from "./loop-b";\nexport const a = () => b;\n`,
+      errors: [{ messageId: "cycle", data: { path: "loop-a.ts → loop-b.ts → loop-a.ts" } }],
+    },
+    {
+      filename: loopB,
+      code: `import { a } from "./loop-a";\nexport const b = 1;\nexport const c = () => a;\n`,
+      errors: [{ messageId: "cycle", data: { path: "loop-b.ts → loop-a.ts → loop-b.ts" } }],
+    },
+  ],
+});
