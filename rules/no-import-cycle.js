@@ -148,7 +148,9 @@ export default {
     const loop = graph.loopOf.get(fileName);
     if (!loop) return {};
     const sourceFile = program.getSourceFile(fileName);
-    const root = program.getCurrentDirectory?.();
+    // Paths in the message are from the project's tsconfig, wherever lint runs.
+    const config = program.getCompilerOptions().configFilePath;
+    const root = typeof config === "string" ? config.replace(/[\\/][^\\/]*$/, "") : context.cwd;
     function check(node) {
       if (!node.source || node.importKind === "type" || node.exportKind === "type") return;
       const statement = services.esTreeNodeToTSNodeMap?.get(node);
