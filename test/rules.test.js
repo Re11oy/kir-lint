@@ -75,6 +75,67 @@ untyped.run("no-render-wait-timer", rules["no-render-wait-timer"], {
   ],
 });
 
+const box = `declare const box: { current: HTMLDivElement | null };\n`;
+typed.run("effect-returns-cleanup-only", rules["effect-returns-cleanup-only"], {
+  valid: [
+    // A concise arrow that returns a cleanup arrow.
+    { filename: tsx, code: `${box}useEffect(() => () => box.current?.blur(), []);` },
+    // A block body returns nothing.
+    { filename: tsx, code: `${box}useEffect(() => { box.current?.scrollTo({ top: 0 }); }, []);` },
+    // A call typed as returning a cleanup, or nothing.
+    { filename: tsx, code: `declare const store: { subscribe(cb: () => void): () => void };\nuseEffect(() => store.subscribe(() => {}), []);` },
+    { filename: tsx, code: `declare function maybe(): (() => void) | undefined;\nuseLayoutEffect(() => maybe(), []);` },
+    { filename: tsx, code: `declare const stop: () => void;\nuseEffect(() => stop, [stop]);` },
+    // Returns in a block body: a cleanup, nothing, or inside a nested function.
+    { filename: tsx, code: `declare const store: { subscribe(cb: () => void): () => void };\nuseEffect(() => { const off = store.subscribe(() => {}); return off; }, []);` },
+    { filename: tsx, code: `${box}useEffect(() => { if (!box.current) return; return () => box.current?.blur(); }, []);` },
+    { filename: tsx, code: `useEffect(() => { const pick = (xs: number[]) => xs.find((x) => x > 1); return () => pick([]); }, []);` },
+    // Not an effect.
+    { filename: tsx, code: `${box}useMemo(() => box.current?.scrollTo({ top: 0 }), []);` },
+  ],
+  invalid: [
+    // Earshot, 25 Nov 2026.
+    {
+      filename: tsx,
+      code: `${box}useEffect(() => box.current?.scrollTo({ top: 0 }), [box]);`,
+      output: `${box}useEffect(() => { box.current?.scrollTo({ top: 0 }); }, [box]);`,
+      errors: [{ messageId: "concise" }],
+    },
+    {
+      filename: tsx,
+      code: `declare const setOpen: (open: boolean) => void;\nReact.useEffect(() => setOpen(false), []);`,
+      output: `declare const setOpen: (open: boolean) => void;\nReact.useEffect(() => { setOpen(false); }, []);`,
+      errors: [{ messageId: "concise" }],
+    },
+    {
+      filename: tsx,
+      code: `${box}useLayoutEffect(() => (box.current!.scrollTop = 0), []);`,
+      output: `${box}useLayoutEffect(() => { (box.current!.scrollTop = 0); }, []);`,
+      errors: [{ messageId: "concise" }],
+    },
+    { filename: tsx, code: `${box}useEffect(() => { return box.current?.scrollIntoView(); }, []);`, errors: [{ messageId: "returned" }] },
+    { filename: tsx, code: `declare function load(): Promise<void>;\nuseEffect(() => { return load(); }, []);`, errors: [{ messageId: "returned" }] },
+    { filename: tsx, code: `declare function load(): Promise<void>;\nuseEffect(async () => { await load(); }, []);`, errors: [{ messageId: "async" }] },
+  ],
+});
+
+untyped.run("effect-returns-cleanup-only without types", rules["effect-returns-cleanup-only"], {
+  valid: [
+    { code: `useEffect(() => () => clearTimeout(timer.current), []);` },
+    { code: `useEffect(() => { box.current?.scrollTo({ top: 0 }); }, [key]);` },
+    // Without types a returned name may be a cleanup, and so may a block's return.
+    { code: `useEffect(() => stop, [stop]);` },
+    { code: `useEffect(() => { return store.subscribe(cb); }, []);` },
+  ],
+  invalid: [
+    // No fix without types: it might return a cleanup.
+    { code: `useEffect(() => box.current?.scrollTo({ top: 0 }), [key]);`, output: null, errors: [{ messageId: "concise" }] },
+    { code: `React.useEffect(() => box.current?.scrollTo({ top: 0 }), [key]);`, output: null, errors: [{ messageId: "concise" }] },
+    { code: `useInsertionEffect(() => sheet.insert(rule), [rule]);`, output: null, errors: [{ messageId: "concise" }] },
+    { code: `useEffect(async () => { await load(); }, []);`, errors: [{ messageId: "async" }] },
+  ],
+});
+
 untyped.run("no-sleep-in-tests", rules["no-sleep-in-tests"], {
   valid: [
     // Polling: a sleep in a loop that ends when the condition holds.

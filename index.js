@@ -149,7 +149,7 @@ export default async function mikecannLint({ root, react, convex: useConvex, unt
         files: CODE,
         ignores: [...CONVEX, ...notReact],
         plugins: { "react-hooks": reactHooks },
-        rules: reactRules(),
+        rules: { ...reactRules(), "mikecann-lint/effect-returns-cleanup-only": "error" },
       },
       {
         name: "mikecann-lint/components",
