@@ -1,7 +1,6 @@
 // A test that sleeps a fixed time and then checks passes on a quiet machine
-// and fails on a busy one. Threadbear needed four fixes for this in
-// Oct-Nov 2026 (89dc7f0d7, 13111c29d, 0e8af1019, bb5b88bc3). A sleep inside a
-// loop is polling, which is the fix, so it's allowed.
+// and fails on a busy one, such as a loaded CI runner. A sleep inside a loop
+// is polling, which is the fix, so it's allowed.
 
 const SLEEP_NAMES = new Set(["sleep", "delay", "wait", "pause"]);
 const LOOPS = new Set([
