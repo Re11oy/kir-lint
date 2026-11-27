@@ -32,7 +32,11 @@ describe("typed rules", () => {
     assert.deepEqual(await lint("file.tsx", code), []);
   });
   it("flag a promise tested for truthiness", async () => {
-    assert.deepEqual(await lint("file.tsx", MISUSED), ["@typescript-eslint/no-misused-promises"]);
+    // A promise is always truthy, so the condition is unnecessary too.
+    assert.deepEqual(await lint("file.tsx", MISUSED), [
+      "@typescript-eslint/no-misused-promises",
+      "@typescript-eslint/no-unnecessary-condition",
+    ]);
   });
   it("flag a switch missing a case of its union", async () => {
     assert.deepEqual(await lint("file.tsx", SWITCH), ["@typescript-eslint/switch-exhaustiveness-check"]);
@@ -49,6 +53,33 @@ describe("typed rules", () => {
     for (const file of ["file.test.ts", "vite.config.ts", "scripts/tool.ts"]) {
       assert.deepEqual(await lint(file, FLOATING + MISUSED.replace("go", "go2")), [], file);
     }
+  });
+});
+
+describe("unnecessary conditions and deprecated APIs", () => {
+  it("flag a guard the types say is always true", async () => {
+    const code = `export function f(s: string) { if (s) return s.length; return s ?? 0; }\n`;
+    assert.deepEqual(await lint("file.tsx", code), ["@typescript-eslint/no-unnecessary-condition"]);
+  });
+  it("keep a guard on an array index (noUncheckedIndexedAccess)", async () => {
+    const code = `export function f(xs: string[]) { const x = xs[0]; if (x) return x.length; return 0; }\n`;
+    assert.deepEqual(await lint("file.tsx", code), []);
+  });
+  it("flag a deprecated API", async () => {
+    const code = `/** @deprecated Use next. */\nexport function old() {}\nexport function go() { old(); }\n`;
+    assert.deepEqual(await lint("file.tsx", code), ["@typescript-eslint/no-deprecated"]);
+  });
+});
+
+describe("type assertions", () => {
+  const CAST = `export const n = JSON.parse("1") as number;\nexport const k = ["a"] as const;\n`;
+  it("flag a cast, not \`as const\`, outside tests", async () => {
+    for (const file of ["file.tsx", "scripts/tool.ts"]) {
+      assert.deepEqual(await lint(file, CAST), ["@typescript-eslint/consistent-type-assertions"], file);
+    }
+  });
+  it("allow casts in tests", async () => {
+    assert.deepEqual(await lint("file.test.ts", CAST), []);
   });
 });
 

@@ -38,6 +38,8 @@ const IGNORES = [
   "**/tmp/**",
 ];
 
+const ACCESS_HELPERS = "^(require|assert|check|ensure|can|verify)([A-Z_]|$)|^has[A-Z_]";
+
 // The React Compiler's lint rules, all as errors, without the two that only
 // say a library or syntax isn't supported by the compiler.
 const COMPILER_NOISE = new Set(["react-hooks/incompatible-library", "react-hooks/unsupported-syntax"]);
@@ -48,12 +50,18 @@ function reactRules(reactHooks) {
   return rules;
 }
 
-// Convex's recommended rules, warnings made errors, plus no-collect-in-query.
+// Convex's recommended rules, warnings made errors, plus the ones it leaves off.
 function convexRules(convex) {
   const rules = {};
   for (const block of [convex.configs.recommended].flat())
     for (const [name, level] of Object.entries(block.rules ?? {})) rules[name] = level === "off" ? "off" : "error";
   rules["@convex-dev/no-collect-in-query"] = "error";
+  // "use node" files stay thin entry points: nothing imports them.
+  rules["@convex-dev/import-wrong-runtime"] = "error";
+  // Every public function checks access first, through a helper named for
+  // it. verify* checks the signed token or secret link of a function that is
+  // public on purpose.
+  rules["@convex-dev/require-access-control"] = ["error", { pattern: ACCESS_HELPERS }];
   return rules;
 }
 
@@ -144,14 +152,18 @@ export default async function kirLint({ root, react, convex: useConvex, untyped 
       files: CONVEX,
       ignores: TEST_FILES,
       plugins: { "@convex-dev": convex },
-      rules: convexRules(convex),
+      rules: {
+        ...convexRules(convex),
+        "kir-lint/no-returns-validator": "error",
+        "kir-lint/no-conditional-spread": "error",
+      },
     });
 
   configs.push(
     {
       // Rules that need types, so only where the pack has them: not tests,
       // tool configs, plain JS or the app's `untyped` files.
-      name: "kir-lint/promises-and-switches",
+      name: "kir-lint/typed",
       files: TS,
       ignores: [...UNTYPED, ...untyped],
       rules: {
@@ -164,7 +176,20 @@ export default async function kirLint({ root, react, convex: useConvex, untyped 
         ],
         // Files that import each other in a circle, read from the program.
         "kir-lint/no-import-cycle": "error",
+        // A guard the types say can never be true. Needs noUncheckedIndexedAccess,
+        // or a real guard on `array[i]` reads as one.
+        "@typescript-eslint/no-unnecessary-condition": "error",
+        "@typescript-eslint/no-unnecessary-type-assertion": "error",
+        "@typescript-eslint/no-deprecated": "error",
       },
+    },
+    {
+      // A cast silences the type checker instead of proving the type. Tests
+      // build fakes and mocks, so they may cast.
+      name: "kir-lint/no-type-assertions",
+      files: TS,
+      ignores: TEST_FILES,
+      rules: { "@typescript-eslint/consistent-type-assertions": ["error", { assertionStyle: "never" }] },
     },
     {
       // Needs no types, so everywhere there's TypeScript, tests too.

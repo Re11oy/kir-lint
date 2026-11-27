@@ -193,3 +193,27 @@ typed.run("no-import-cycle", rules["no-import-cycle"], {
     },
   ],
 });
+
+untyped.run("no-returns-validator", rules["no-returns-validator"], {
+  valid: [
+    { code: `export const get = query({ args: {}, handler: async () => 1 });` },
+    // Not a function definition's options.
+    { code: `const returns = 1; const x = { returns };` },
+  ],
+  invalid: [
+    { code: `export const get = query({ args: {}, returns: v.number(), handler: async () => 1 });`, errors: [{ messageId: "returns" }] },
+  ],
+});
+
+untyped.run("no-conditional-spread", rules["no-conditional-spread"], {
+  valid: [
+    { code: `const doc = { name: name ? name : undefined };` },
+    // In patch, undefined unsets the field, so leaving it out matters.
+    { code: `await ctx.db.patch(id, { ...(name ? { name } : {}) });` },
+    { code: `const doc = { ...(a ? b : c) };` },
+  ],
+  invalid: [
+    { code: `await ctx.db.insert("t", { ...(name ? { name } : {}) });`, errors: [{ messageId: "spread" }] },
+    { code: `const doc = { ...(missing ? {} : { name }) };`, errors: [{ messageId: "spread" }] },
+  ],
+});
