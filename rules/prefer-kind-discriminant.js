@@ -1,7 +1,5 @@
-// Discriminated unions are tagged with `kind`, the way the state machines
-// library and Let's Build It do. Ported from Let's Build It's rule; Mike asked
-// for discriminated unions over loose optional fields in at least five threads
-// (Apr-Nov 2026).
+// Discriminated unions are tagged with `kind`, the way Convex's state machines
+// library does, so every union in a codebase reads the same.
 
 function isLiteralUnion(node) {
   if (node?.type === "TSLiteralType") return true;

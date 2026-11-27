@@ -1,2 +1,2 @@
-import mikecannLint from "mikecann-lint";
-export default await mikecannLint({ root: import.meta.dirname });
+import kirLint from "kir-lint";
+export default await kirLint({ root: import.meta.dirname });

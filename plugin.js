@@ -6,7 +6,7 @@ import noSleepInTests from "./rules/no-sleep-in-tests.js";
 import preferKindDiscriminant from "./rules/prefer-kind-discriminant.js";
 
 export default {
-  meta: { name: "mikecann-lint" },
+  meta: { name: "kir-lint" },
   rules: {
     "click-shows-progress": clickShowsProgress,
     "effect-returns-cleanup-only": effectReturnsCleanupOnly,

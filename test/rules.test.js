@@ -1,11 +1,8 @@
 import { describe, it } from "node:test";
 import path from "node:path";
 import { RuleTester } from "eslint";
-import { useTypeScript6 } from "../typescript6.js";
+import tseslint from "typescript-eslint";
 import plugin from "../plugin.js";
-
-useTypeScript6();
-const { default: tseslint } = await import("typescript-eslint");
 
 RuleTester.describe = describe;
 RuleTester.it = it;
@@ -94,7 +91,7 @@ typed.run("effect-returns-cleanup-only", rules["effect-returns-cleanup-only"], {
     { filename: tsx, code: `${box}useMemo(() => box.current?.scrollTo({ top: 0 }), []);` },
   ],
   invalid: [
-    // Earshot, 25 Nov 2026.
+    // The crash this rule is for.
     {
       filename: tsx,
       code: `${box}useEffect(() => box.current?.scrollTo({ top: 0 }), [box]);`,

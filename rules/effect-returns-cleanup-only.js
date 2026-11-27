@@ -1,5 +1,5 @@
 // An effect's return value is its cleanup: React calls it when the effect
-// re-runs or the component unmounts. Earshot's website (25 Nov 2026) had
+// re-runs or the component unmounts. A real crash (Nov 2026) came from
 // `useEffect(() => box.current?.scrollTo({ top: 0 }), [key])`. Current Chrome
 // makes Element.scrollTo, scrollBy and scrollIntoView return a Promise, so the
 // arrow handed React a promise as its cleanup and navigating away crashed the

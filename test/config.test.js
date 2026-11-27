@@ -5,13 +5,13 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
 import { ESLint } from "eslint";
-import mikecannLint from "../index.js";
+import kirLint from "../index.js";
 
 const fixture = path.join(import.meta.dirname, "fixture");
 const eslint = new ESLint({
   cwd: fixture,
   overrideConfigFile: true,
-  overrideConfig: await mikecannLint({ root: fixture, react: false, convex: false, untyped: ["scripts/**"] }),
+  overrideConfig: await kirLint({ root: fixture, react: false, convex: false, untyped: ["scripts/**"] }),
 });
 
 async function lint(file, code) {

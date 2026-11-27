@@ -1,7 +1,7 @@
 // A short timer in a component is a guess at when React has rendered or the
 // DOM has settled, and the guess is wrong on a slow device: a robot that slid
-// and jumped back after a setTimeout(0) (spatial-intelligence talk, Aug 2026),
-// "wait 50 ms for the window, then focus" (mikerosoft.app). Longer timers
+// and jumped back after a setTimeout(0), "wait 50 ms for the window, then
+// focus". Longer timers
 // (a "Copied" label that resets, a hover delay) are real waits and fine.
 
 const LIMIT_MS = 100;

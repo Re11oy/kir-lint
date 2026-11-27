@@ -1,8 +1,7 @@
 // Files that import each other in a circle, directly or round several files.
 // None of them can then be read or changed alone, and at runtime one of them
-// sees the other half-loaded. deslop-please found eight such loops between
-// Threadbear's Rust modules (Nov 2026), and six were small ones an agent had
-// made by putting a shared helper beside one of its users.
+// sees the other half-loaded. Most loops are small ones an agent made by
+// putting a shared helper beside one of its users.
 //
 // Read from the TypeScript program typescript-eslint already built, so a run
 // costs one walk of the project's imports, done once and shared by every file.

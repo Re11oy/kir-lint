@@ -1,7 +1,6 @@
 // Every click shows something at once, and nothing can be pressed twice while
-// it works (Mike's standing order, 7 Nov 2026; Sammy Cam stuck on "sending...",
-// a Cannvas tap that did nothing, Threadbear's approval buttons). This catches
-// the mechanical part: a click or press that starts async work on a control
+// it works: a send button stuck on "sending...", a tap that seemed to do
+// nothing, approval buttons pressed twice. This catches the mechanical part: a click or press that starts async work on a control
 // that never disables. With type information it also sees named handlers
 // (`onClick={save}`) and calls whose promise is thrown away (`void save()`).
 
