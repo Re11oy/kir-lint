@@ -73,7 +73,7 @@ When an agent gets something wrong that a rule could catch:
 3. Add valid and invalid cases to `test/rules.test.js`, including a false positive you expect.
 4. Measure it on our apps before turning it on. If most hits are fine code, it isn't ready.
 5. Add a line to the table above saying what happened.
-6. Bump the version in `package.json` and tag the release `v<version>`.
+6. Bump the version in `package.json`. Merging to main tags it `v<version>` (`.github/workflows/tag.yml`).
 
 A rule the pack configures is replaced, not merged, when an app sets the same rule. So a check here is a named rule of its own, not a `no-restricted-syntax` or `no-restricted-imports` entry an app would overwrite.
 
