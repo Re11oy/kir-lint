@@ -1,6 +1,6 @@
 {
   "name": "kir-lint",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A small, strict ESLint setup for our Convex + TypeScript + React apps. Every rule is there because it caught a real bug.",
   "type": "module",
   "license": "MIT",
